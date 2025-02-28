@@ -1,0 +1,15 @@
+{
+  "name": "angular-docs-sitemap",
+  "version": "1.0.0",
+  "description": "Generate sitemap for Angular documentation using open source npm package sitemap-generator",
+  "main": "generate-sitemap.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "sitemap-generator": "^8.5.1"
+  }
+}
