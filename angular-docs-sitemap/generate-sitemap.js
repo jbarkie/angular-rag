@@ -5,7 +5,7 @@ const generator = SitemapGenerator('https://angular.dev', {
   stripQuerystring: false
 });
 
-// register event listeners
+// register event listeners`
 // log all URLs
 generator.on('add', (url) => {
     console.log(`Added: ${url}`);
