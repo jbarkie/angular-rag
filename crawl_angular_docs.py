@@ -1,8 +1,8 @@
 import asyncio
 from urllib.parse import urlparse
 
-from crawl4ai import AsyncWebCrawler, BrowserConfig, CrawlerRunConfig, CacheMode
-from crawl4ai.async_dispatcher import MemoryAdaptiveDispatcher
+from crawl4ai import AsyncWebCrawler, BrowserConfig, CrawlerRunConfig, CacheMode, CrawlerMonitor, DisplayMode, RateLimiter
+from crawl4ai.async_dispatcher import SemaphoreDispatcher
 
 # Read URLs of Angular docs given file path 
 def read_urls_from_file(file_path):
@@ -28,16 +28,18 @@ async def crawl_batch(urls, batch_size=10):
         stream=False                         # Get all results at once
     )
 
-    # Memory-adaptive dispatcher for automatic management of concurrency based on system memory usage
-    dispatcher = MemoryAdaptiveDispatcher(
-        memory_threshold_percent=90.0,  # Pause if memory exceeds this
-        check_interval=1.0,             # How often to check memory usage
-        max_session_permit=batch_size,  # Maximum concurrent tasks
-        # monitor=CrawlerMonitor(
-        #     display_mode=DisplayMode.DETAILED
-        # )
+    dispatcher = SemaphoreDispatcher(
+        max_session_permit=20,          # Maximum concurrent tasks
+        rate_limiter=RateLimiter(      
+            base_delay=(0.5, 1.0),      # Delay between requests
+            max_delay=10.0              # Max allowable delay when rate-limiting errors occur
+        ),
+        monitor=CrawlerMonitor(        
+            max_visible_rows=15,
+            display_mode=DisplayMode.DETAILED   # Show individual task status, memory usage, and timing
+        )
     )
-    
+
     async with AsyncWebCrawler(config=browser_config) as crawler:
         results = await crawler.arun_many(
             urls=urls,
