@@ -3,6 +3,7 @@ from urllib.parse import urlparse
 
 from crawl4ai import AsyncWebCrawler, BrowserConfig, CrawlerRunConfig, CacheMode, CrawlerMonitor, DisplayMode, RateLimiter
 from crawl4ai.async_dispatcher import SemaphoreDispatcher
+from crawl4ai.markdown_generation_strategy import DefaultMarkdownGenerator
 
 # Read URLs of Angular docs given file path 
 def read_urls_from_file(file_path):
@@ -11,7 +12,7 @@ def read_urls_from_file(file_path):
     return urls
 
 async def process_result(result):
-    print(result)
+    print(result.markdown)
 
 # Main crawling function with improved memory handling
 async def crawl_batch(urls, batch_size=10):
@@ -22,6 +23,7 @@ async def crawl_batch(urls, batch_size=10):
 
     # Advanced run configuration
     run_config = CrawlerRunConfig(
+        markdown_generator=DefaultMarkdownGenerator(),  # Convert final HTML into markdown at the end of each crawl 
         cache_mode=CacheMode.BYPASS,       
         check_robots_txt=True,             # Respect robots.txt rules
         word_count_threshold=10,            # Minimum words to keep a section
