@@ -12,7 +12,7 @@ def read_urls_from_file(file_path):
     return urls
 
 async def process_result(result):
-    print(result.markdown)
+    print(f"Markdown for {result.url}:\n", result.markdown[:500])
 
 # Main crawling function with improved memory handling
 async def crawl_batch(urls, batch_size=10):
@@ -21,9 +21,16 @@ async def crawl_batch(urls, batch_size=10):
         verbose=True,
     )
 
+    md_generator = DefaultMarkdownGenerator(
+        options={
+            "ignore_links": True,
+            "ignore_images": True,
+        }
+    )
+
     # Advanced run configuration
     run_config = CrawlerRunConfig(
-        markdown_generator=DefaultMarkdownGenerator(),  # Convert final HTML into markdown at the end of each crawl 
+        markdown_generator=md_generator,  # Convert final HTML into markdown at the end of each crawl 
         cache_mode=CacheMode.BYPASS,       
         check_robots_txt=True,             # Respect robots.txt rules
         word_count_threshold=10,            # Minimum words to keep a section
