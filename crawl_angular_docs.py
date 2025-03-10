@@ -1,16 +1,21 @@
 import asyncio
 import argparse
+import os
+import re
+from urllib.parse import urlparse
 
 from crawl4ai import AsyncWebCrawler, BrowserConfig, CrawlerRunConfig, CacheMode, CrawlerMonitor, DisplayMode, RateLimiter
 from crawl4ai.async_dispatcher import SemaphoreDispatcher
 from crawl4ai.markdown_generation_strategy import DefaultMarkdownGenerator
 
+# Parse command line arguments
 def parse_args():
     parser = argparse.ArgumentParser(
         prog="crawl_angular_docs",
         description="Crawl Angular docs and convert to an LLM-friendly Markdown format to assist in building a RAG system that optimizes for Angular development."
     )
     parser.add_argument('--filename', help="Path to the file containing URLs to crawl.")
+    parser.add_argument('--output_dir', help="Path to the output directory to save the Markdown content.")
     args = parser.parse_args()
     return args
 
@@ -20,11 +25,33 @@ def read_urls_from_file(file_path):
         urls = [line.strip() for line in file.readlines() if line.strip()]
     return urls
 
-async def process_result(result):
-    print(f"Markdown for {result.url}:\n", result.markdown[:500])
+async def process_result(result, output_dir):
+    os.makedirs(output_dir, exist_ok=True)
+
+    crawled_url = result.url
+    # Parse the URL to create a more friendly filename structure
+    parsed_url = urlparse(crawled_url)
+    path = parsed_url.netloc + parsed_url.path
+    
+    # Create filename from path, replacing special characters
+    filename = path.replace('/', '-').replace('.', '-')
+    filename = re.sub(r'[^a-zA-Z0-9-_]', '', filename)
+    filename = f"{filename}.md"
+    filepath = os.path.join(output_dir, filename)
+    
+    # Write the markdown content to file
+    with open(filepath, 'w', encoding='utf-8') as f:
+        # Add URL as reference at the top of the file
+        f.write(f"Source: {result.url}\n\n")
+        f.write(result.markdown)
+    
+    print(f"Saved markdown to {filepath}")
+    # Still print a preview to the console but shorter
+    print(f"Preview:\n{result.markdown[:200]}...\n")
+
 
 # Main crawling function with improved memory handling
-async def crawl_batch(urls, batch_size=10):
+async def crawl_batch(urls, output_dir, batch_size=10):
     browser_config = BrowserConfig(
         headless=True,
         verbose=True,
@@ -67,7 +94,7 @@ async def crawl_batch(urls, batch_size=10):
 
         for result in results:
             if result.success:
-                await process_result(result)
+                await process_result(result, output_dir)
             else:
                 print(f"Error processing {result.url}: {result.error_message}") 
 
@@ -75,6 +102,7 @@ async def main():
     # Configuration
     args = parse_args()
     urls_file = "angular-docs-sitemap/angular-docs-urls.txt" if not args.filename else args.filename
+    output_dir = "angular-docs-data" if not args.output_dir else args.output_dir
     batch_size = 5  # Start with a conservative batch size
     
     
@@ -82,7 +110,7 @@ async def main():
     print(f"Found {len(urls)} total URLs. Processing...")
     
     # Crawl the URLs
-    await crawl_batch(urls, batch_size=batch_size)  
+    await crawl_batch(urls, output_dir, batch_size=batch_size)  
 
 if __name__ == "__main__":
     asyncio.run(main())
