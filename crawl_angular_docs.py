@@ -1,9 +1,18 @@
 import asyncio
-from urllib.parse import urlparse
+import argparse
 
 from crawl4ai import AsyncWebCrawler, BrowserConfig, CrawlerRunConfig, CacheMode, CrawlerMonitor, DisplayMode, RateLimiter
 from crawl4ai.async_dispatcher import SemaphoreDispatcher
 from crawl4ai.markdown_generation_strategy import DefaultMarkdownGenerator
+
+def parse_args():
+    parser = argparse.ArgumentParser(
+        prog="crawl_angular_docs",
+        description="Crawl Angular docs and convert to an LLM-friendly Markdown format to assist in building a RAG system that optimizes for Angular development."
+    )
+    parser.add_argument('--filename', help="Path to the file containing URLs to crawl.")
+    args = parser.parse_args()
+    return args
 
 # Read URLs of Angular docs given file path 
 def read_urls_from_file(file_path):
@@ -64,18 +73,16 @@ async def crawl_batch(urls, batch_size=10):
 
 async def main():
     # Configuration
-    urls_file = "angular-docs-sitemap/angular-docs-urls.txt"
+    args = parse_args()
+    urls_file = "angular-docs-sitemap/angular-docs-urls.txt" if not args.filename else args.filename
     batch_size = 5  # Start with a conservative batch size
     
-    all_urls = read_urls_from_file(urls_file)
     
-    test_size = 20  # Uncomment for testing
-    test_urls = all_urls[:test_size]  # Uncomment for testing
-    print(f"Found {len(all_urls)} total URLs. Processing {test_size} for testing.")
+    urls = read_urls_from_file(urls_file)
+    print(f"Found {len(urls)} total URLs. Processing...")
     
     # Crawl the URLs
-    await crawl_batch(test_urls, batch_size=batch_size)  # Uncomment for testing
-    # await crawl_angular_docs_batch(all_urls, output_dir, batch_size=batch_size)  # For production
+    await crawl_batch(urls, batch_size=batch_size)  
 
 if __name__ == "__main__":
     asyncio.run(main())
