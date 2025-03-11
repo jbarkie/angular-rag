@@ -14,8 +14,8 @@ def parse_args():
         prog="crawl_angular_docs",
         description="Crawl Angular docs and convert to an LLM-friendly Markdown format to assist in building a RAG system that optimizes for Angular development."
     )
-    parser.add_argument('--filename', help="Path to the file containing URLs to crawl.")
-    parser.add_argument('--output_dir', help="Path to the output directory to save the Markdown content.")
+    parser.add_argument("--filename", default="angular-docs-sitemap/angular-docs-urls.txt", help="Path to the file containing URLs to crawl.")
+    parser.add_argument("--output_dir", default="angular-docs-data/", help="Path to the output directory to save the Markdown content.")
     args = parser.parse_args()
     return args
 
