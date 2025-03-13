@@ -38,7 +38,7 @@ async def process_result(result, output_dir):
     filename = re.sub(r'[^a-zA-Z0-9-_]', '', filename)
     filename = f"{filename}.md"
     filepath = os.path.join(output_dir, filename)
-    
+
     # Write the markdown content to file
     with open(filepath, 'w', encoding='utf-8') as f:
         # Add URL as reference at the top of the file
@@ -46,9 +46,6 @@ async def process_result(result, output_dir):
         f.write(result.markdown)
     
     print(f"Saved markdown to {filepath}")
-    # Still print a preview to the console but shorter
-    print(f"Preview:\n{result.markdown[:200]}...\n")
-
 
 # Main crawling function with improved memory handling
 async def crawl_batch(urls, output_dir, batch_size=10):
@@ -59,8 +56,9 @@ async def crawl_batch(urls, output_dir, batch_size=10):
 
     md_generator = DefaultMarkdownGenerator(
         options={
-            "ignore_links": True,
-            "ignore_images": True,
+            "ignore_links": True,       # Remove hyperlinks from final markdown
+            "ignore_images": True,      # Remove image references 
+            "escape_html": False        # Preserve HTML entities
         }
     )
 
