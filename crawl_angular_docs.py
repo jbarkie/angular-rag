@@ -47,13 +47,6 @@ async def process_result(result, output_dir):
     
     print(f"Saved markdown to {filepath}")
 
-    html = result.html
-    html_filepath = filepath.replace(".md", ".html")
-    with open(html_filepath, 'w', encoding='utf-8') as f:
-        f.write(html) 
-
-    print(f"Saved HTML to {filepath}")
-
 # Main crawling function with improved memory handling
 async def crawl_batch(urls, output_dir, batch_size=10):
     browser_config = BrowserConfig(
@@ -75,7 +68,13 @@ async def crawl_batch(urls, output_dir, batch_size=10):
         cache_mode=CacheMode.BYPASS,       
         check_robots_txt=True,             # Respect robots.txt rules
         word_count_threshold=10,            # Minimum words to keep a section
-        stream=False                         # Get all results at once
+        stream=False,                       # Get all results at once
+        excluded_tags=[
+        "script", "style", "nav", "header", "footer", "button", "svg", 
+        "iframe", "docs-icon", "docs-cookie-popup", "adev-progress-bar", 
+        "docs-top-level-banner", "adev-secondary-navigation", 
+        "docs-table-of-contents", "meta", "link"
+        ],                                  # Exclude these tags from HTML content first
     )
 
     dispatcher = SemaphoreDispatcher(
