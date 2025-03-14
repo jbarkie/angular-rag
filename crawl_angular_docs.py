@@ -47,6 +47,13 @@ async def process_result(result, output_dir):
     
     print(f"Saved markdown to {filepath}")
 
+    html = result.html
+    html_filepath = filepath.replace(".md", ".html")
+    with open(html_filepath, 'w', encoding='utf-8') as f:
+        f.write(html) 
+
+    print(f"Saved HTML to {filepath}")
+
 # Main crawling function with improved memory handling
 async def crawl_batch(urls, output_dir, batch_size=10):
     browser_config = BrowserConfig(
